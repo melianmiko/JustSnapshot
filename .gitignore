@@ -1,0 +1,7 @@
+venv
+build
+dist
+.idea
+JustSnapshot.egg-info
+**/__pycache__
+
