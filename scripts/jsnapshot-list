@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+import argparse
+import jsnapshot_core
+
+parser = argparse.ArgumentParser(prog="jsnapshot-list", description="List available snapshots")
+parser.parse_known_args()
+
+callback = jsnapshot_core.AppCallback()
+result = jsnapshot_core.initialize_app(callback)
+if not result:
+    callback.error("App init failed")
+    raise SystemExit(1)
+
+volume = jsnapshot_core.bind_root()
+engine = jsnapshot_core.BackupEngine(callback, volume)
+snapshots = engine.list_snapshots()
+
+for snapshot in snapshots:
+    info = ""
+    if "info" in snapshot.metadata:
+        info = snapshot.metadata["info"]
+    print(snapshot.name.ljust(24), info)

@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import os.path
+import jsnapshot_core
+
+parser = argparse.ArgumentParser(prog="jsnapshot-show", description="Get snapshot info.")
+parser.add_argument("snapshot", type=str, help="Snapshot name")
+args = parser.parse_args()
+name = args.snapshot
+
+callback = jsnapshot_core.AppCallback()
+result = jsnapshot_core.initialize_app(callback)
+if not result:
+    callback.error("App init failed")
+    raise SystemExit(1)
+
+volume = jsnapshot_core.bind_root()
+engine = jsnapshot_core.BackupEngine(callback, volume)
+snapshots = engine.list_snapshots()
+
+item = None
+for a in snapshots:
+    if a.name == name:
+        item = a
+
+if item is None:
+    callback.warn("Snapshot with name " + name + " not found")
+    raise SystemExit(1)
+
+KEY_WIDTH = 32
+colors = jsnapshot_core.ConsoleColor
+
+print()
+print(colors.BOLD + "Snapshot metadata:" + colors.END)
+for a in item.metadata:
+    print(" " + a.ljust(KEY_WIDTH) + " = " + item.metadata[a])
+print()
+
+# Read recover_paths file
+if not os.path.isfile(item.path + "/recover_paths.json"):
+    callback.error("Snapshot is broken: missing recovery paths file")
+    raise SystemExit(2)
+
+with open(item.path + "/recover_paths.json", "r") as f:
+    parts = json.load(f)
+
+for info in parts:
+    print(colors.BOLD + "Subvolume " + info["backup"] + ":" + colors.END)
+    print(" " + "Source path".ljust(KEY_WIDTH) + " = " + info["source"])
+
+    subvolume = volume.get_subvolume(info["backup"])
+    if not subvolume.exists():
+        callback.error("Snapshot is broken: one or more subvolume not found")
+        raise SystemExit(2)
+
+    print(" " + "Full size".ljust(KEY_WIDTH) + " = " + subvolume.size_full)
+    print(" " + "Unique size".ljust(KEY_WIDTH) + " = " + subvolume.size_unique)
+
+    print()
