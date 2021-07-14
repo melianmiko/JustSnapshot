@@ -196,6 +196,7 @@ class BtrfsSubvolume:
 
         shutil.move(self.get_absolute_path(), destination)
 
+        self.original_path = self.path
         self.path = destination
         self._load_data_from_path()
 

@@ -26,10 +26,57 @@ class BackupEngine:
 
         return out
 
-    def create_snapshot(self, info=None):
+    def restore_snapshot(self, target_snapshot, full=False, parts=None):
+        print(full)
         """
-        Create system snapshot
-        :return:
+        (DANGER) Restore snapshot
+        :return: void
+        """
+        # Move current roots to new snapshot
+        auto_snapshot = self._create_snapshot_item()
+        config = jsnapshot_core.AppConfig()
+        self.callback.notice("Moving current system to new snapshot...")
+
+        recover_paths = []
+        for root in config.subvolumes:
+            if not full and root not in parts:
+                continue
+
+            if os.path.isdir(self.volume.mount_point + "/" + root):
+                vol = self.volume.get_subvolume(root)
+                destination = auto_snapshot.path + "/" + vol.path
+                self.callback.notice("Moving " + vol.path + " => " + destination)
+                vol.move(destination)
+                recover_paths.append({
+                    "backup": vol.path,
+                    "source": vol.original_path
+                })
+
+        auto_snapshot.metadata["subvolumes"] = recover_paths
+        auto_snapshot.metadata["info"] = "Auto-snapshot before restoring: " + target_snapshot.name
+        auto_snapshot.save_metadata()
+
+        # Recover target snapshot parts
+        paths = target_snapshot.metadata["subvolumes"]
+        new_volumes = []
+
+        self.callback.notice("Recovering target snapshot...")
+        for item in paths:
+            if not full and item["source"] not in parts:
+                continue
+            source = self.volume.get_subvolume(item["backup"])
+            target = item["source"]
+            self.callback.notice("Restoring " + source.path + " => " + target)
+            new_volumes += source.snapshot_recursive(target)
+
+        # Patch fstab in restored system
+        jsnapshot_core.os_patcher.patch_fstab_of_backup(new_volumes, self.callback, config)
+        self.callback.notice("Restore completed. Reboot is required to apply changes.")
+
+    def _create_snapshot_item(self):
+        """
+        Create snapshot folder and object
+        :return: snapshot object
         """
         if not os.path.isdir(self.storage_path):
             os.mkdir(self.storage_path)
@@ -40,31 +87,35 @@ class BackupEngine:
         self.callback.notice("Backup to: " + path)
         os.mkdir(path)
 
+        snapshot = jsnapshot_core.Snapshot(name, self.volume)
+        return snapshot
+
+    def create_snapshot(self, info=None):
+        """
+        Create system snapshot
+        :return:
+        """
+        snapshot = self._create_snapshot_item()
+
         # Snapshot all partitions
         config = jsnapshot_core.AppConfig()
-        targets = []
+        recover_paths = []
         for a in config.subvolumes:
             subvolume = self.volume.get_subvolume(a)
-            destination = path + "/" + subvolume.path
+            destination = snapshot.path + "/" + subvolume.path
             self.callback.notice("Snapshot recursive: " + subvolume.get_absolute_path() + " => " + destination)
-            targets.append(subvolume.snapshot_recursive(destination)[0])
-
-        # Create recover map file
-        recover_paths = []
-        for item in targets:
+            new_root = subvolume.snapshot_recursive(destination)[0]
             recover_paths.append({
-                "backup": item.path,
-                "source": item.original_path
+                "backup": new_root.path,
+                "source": new_root.original_path
             })
 
-        with open(path + "/recover_paths.json", "w") as f:
-            json.dump(recover_paths, f)
+        snapshot.metadata["subvolumes"] = recover_paths
 
         # Create snapshot info file (via snapshot class)
-        snapshot = jsnapshot_core.Snapshot(name, self.volume)
         if info != "" and info is not None:
             self.callback.notice("Set snapshot info: " + info)
             snapshot.metadata["info"] = info
-        snapshot.save_metadata()
 
+        snapshot.save_metadata()
         self.callback.notice("Snapshot created.")

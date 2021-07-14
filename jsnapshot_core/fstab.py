@@ -82,6 +82,14 @@ class FstabFile:
 
         return out
 
+    def save(self):
+        out = ""
+        for a in self.records:
+            out += str(a) + "\n"
+
+        with open(self.path, "w") as f:
+            f.write(out)
+
     def read(self):
         with open(self.path, "r") as f:
             data = f.read().split("\n")

@@ -18,14 +18,15 @@ if python_path:
     os.putenv('PYTHONPATH', "%s:%s" % (os.getenv('PYTHONPATH', ''), ':'.join(python_path)))  # for subprocesses
 
 import argparse
-import json
-import os.path
+import traceback
+
 import jsnapshot_core
 
-parser = argparse.ArgumentParser(prog="jsnapshot-show", description="Get snapshot info.")
+parser = argparse.ArgumentParser(prog="jsnapshot-restore", description="Restore snapshot")
 parser.add_argument("snapshot", type=str, help="Snapshot name")
+parser.add_argument("parts", type=str, help="List of subvolumes to recover, or 'all'. " +
+                                            "Example: \n\tjsnapshot-restore 2021-01-01_11-11-11 @,@home")
 args = parser.parse_args()
-name = args.snapshot
 
 callback = jsnapshot_core.AppCallback()
 result = jsnapshot_core.initialize_app(callback)
@@ -39,36 +40,30 @@ snapshots = engine.list_snapshots()
 
 item = None
 for a in snapshots:
-    if a.name == name:
+    if a.name == args.snapshot:
         item = a
 
 if item is None:
-    callback.warn("Snapshot with name " + name + " not found")
+    callback.warn("Snapshot with name " + args.snapshot + " not found")
     raise SystemExit(1)
 
-KEY_WIDTH = 32
-colors = jsnapshot_core.ConsoleColor
+full_recover = args.parts == "all"
+parts = []
 
-print()
-print(colors.BOLD + "Snapshot metadata:" + colors.END)
-for a in item.metadata:
-    if isinstance(item.metadata[a], str):
-        print(" " + a.ljust(KEY_WIDTH) + " = " + item.metadata[a])
+if not full_recover:
+    parts = args.parts.split(",")
+    for a in parts:
+        if not os.path.isdir(item.path + "/" + a):
+            callback.error("Part not found: " + a)
+            raise SystemExit(1)
 
-print()
+callback.warn("Recovering system with snapshot " + item.name)
+if not full_recover:
+    callback.warn("Using this parts: " + str(parts))
 
-# Read recover_paths file
-parts = item.metadata["subvolumes"]
-for info in parts:
-    print(colors.BOLD + "Subvolume " + info["backup"] + ":" + colors.END)
-    print(" " + "Source path".ljust(KEY_WIDTH) + " = " + info["source"])
-
-    subvolume = volume.get_subvolume(info["backup"])
-    if not subvolume.exists():
-        callback.error("Snapshot is broken: one or more subvolume not found")
-        raise SystemExit(2)
-
-    print(" " + "Full size".ljust(KEY_WIDTH) + " = " + subvolume.size_full)
-    print(" " + "Unique size".ljust(KEY_WIDTH) + " = " + subvolume.size_unique)
-
-    print()
+try:
+    engine.restore_snapshot(item, parts=parts, full=full_recover)
+except Exception:
+    traceback.print_exc()
+    callback.error("Operation failed.")
+    raise SystemExit(1)
