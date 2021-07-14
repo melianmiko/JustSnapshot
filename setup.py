@@ -9,7 +9,8 @@ setup(
         "scripts/jsnapshot-delete",
         "scripts/jsnapshot-list",
         "scripts/jsnapshot-setup",
-        "scripts/jsnapshot-show"
+        "scripts/jsnapshot-show",
+        "scripts/jsnapshot-restore"
     ],
     url='https://melianmiko.ru/',
     license='BSD',

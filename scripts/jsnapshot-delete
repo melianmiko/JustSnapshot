@@ -44,5 +44,10 @@ if item is None:
     callback.warn("Snapshot with name " + name + " not found")
     raise SystemExit(1)
 
+if item.is_booted():
+    callback.error("Can't delete this snapshot: You're booted inside them. Maybe you recovered some snapshot and \n  "+
+                   "trying to delete auto-created backup. Reboot system and try again.")
+    raise SystemExit(1)
+
 callback.notice("Deleting snapshot " + item.path)
 item.delete()

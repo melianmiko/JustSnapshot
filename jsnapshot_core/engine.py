@@ -27,7 +27,6 @@ class BackupEngine:
         return out
 
     def restore_snapshot(self, target_snapshot, full=False, parts=None):
-        print(full)
         """
         (DANGER) Restore snapshot
         :return: void
