@@ -1,8 +1,9 @@
 from setuptools import setup
+from jsnapshot_core.app_info import VERSION
 
 setup(
     name='JustSnapshot',
-    version='0.1',
+    version=VERSION,
     packages=['jsnapshot_core'],
     scripts=[
         "scripts/jsnapshot-create",
@@ -13,6 +14,9 @@ setup(
         "scripts/jsnapshot-restore"
     ],
     url='https://melianmiko.ru/',
+    install_requires=[
+        "python-crontab"
+    ],
     license='BSD',
     author='MelianMiko',
     author_email='melianmiko@gmail.com',

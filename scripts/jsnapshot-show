@@ -18,8 +18,6 @@ if python_path:
     os.putenv('PYTHONPATH', "%s:%s" % (os.getenv('PYTHONPATH', ''), ':'.join(python_path)))  # for subprocesses
 
 import argparse
-import json
-import os.path
 import jsnapshot_core
 
 parser = argparse.ArgumentParser(prog="jsnapshot-show", description="Get snapshot info.")

@@ -3,10 +3,9 @@ import os.path
 import subprocess
 
 from . import config
-from .callback import AppCallback
 
 
-def initialize_app(callback: AppCallback):
+def initialize_app(callback):
     # Check user
     if getpass.getuser() != "root":
         callback.error("You must run this app as root user.")

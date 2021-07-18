@@ -43,6 +43,7 @@ class Snapshot:
         if tag not in self.metadata["tags"]:
             self.metadata["tags"].append(tag)
             self.metadata["tags"].sort()
+            self.save_metadata()
 
     def untag(self, tag):
         """

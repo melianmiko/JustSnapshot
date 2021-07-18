@@ -70,12 +70,31 @@ line = callback.input("Enter numbers of volumes separated with space. Example, i
                       "first and third, enter '0 2'.")
 
 subvolumes = []
-for a in line.split(" "):
-    val = data[int(a)]
+for period in line.split(" "):
+    val = data[int(period)]
     print("Selected subvolume", val)
     subvolumes.append(val.path)
 
 app_config.subvolumes = subvolumes
 app_config.save()
+
+# Timetable setup
+print("")
+print(colors.HEADER + colors.BOLD + "STEP 3. Configure auto-snapshot timetable." + colors.END)
+print("")
+
+print("Enter count of auto-snapshots for every period. If you don't need auto-backup in some period, enter zero (0).")
+for period in jsnapshot_core.PERIOD_NAMES:
+    value = -1
+    while value < 0:
+        try:
+            value = int(callback.input("Enter count of " + period + " snapshots."))
+        except ValueError:
+            callback.warn("Please enter integer number, greater or equal zero.")
+    app_config.timetable[period] = value
+
+print()
+app_config.save()
+jsnapshot_core.cron_auto_config()
 
 print("Configuration updated. Now you can use this application.")

@@ -1,4 +1,3 @@
-import json
 import os.path
 
 from datetime import datetime
@@ -143,3 +142,5 @@ class BackupEngine:
 
         snapshot.save_metadata()
         self.callback.notice("Snapshot created.")
+
+        return snapshot

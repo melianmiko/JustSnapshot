@@ -1,3 +1,9 @@
+import os.path
+from datetime import datetime
+
+from .app_info import VERSION
+
+
 class ConsoleColor:
     HEADER = '\033[95m'
     BLUE = '\033[94m'
@@ -9,6 +15,32 @@ class ConsoleColor:
     END = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+class LogCallback:
+    def __init__(self):
+        filename = "log_" + datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+
+        log_root = "/var/log/just_snapshot"
+        if not os.path.isdir(log_root):
+            os.mkdir(log_root)
+
+        self.path = log_root + "/" + filename
+        self.file = open(self.path)
+
+        self.file.write("JustSnapshot " + VERSION + "\n")
+
+    def notice(self, data):
+        self.file.write("NOTICE: " + str(data) + "\n")
+
+    def warn(self, data):
+        self.file.write("WARN: " + str(data) + "\n")
+
+    def error(self, data):
+        self.file.write("ERROR: " + str(data) + "\n")
+
+    def close(self):
+        self.file.close()
 
 
 # noinspection PyMethodMayBeStatic
