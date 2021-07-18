@@ -1,10 +1,13 @@
 import os.path
+import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from crontab import CronTab
 
 import jsnapshot_core
+from jsnapshot_core.config import AppConfig
+from jsnapshot_core.engine import BackupEngine
 
 CRON_FILE = "/etc/cron.d/just_snapshot"
 PERIOD_NAMES = ["hourly", "daily", "weekly", "monthly"]
@@ -36,9 +39,9 @@ def process_tag_cleanup(engine, config, callback):
 
 def handle_cron(callback):
     volume = jsnapshot_core.bind_root()
-    engine = jsnapshot_core.BackupEngine(callback, volume)
+    engine = BackupEngine(callback, volume)
     now = datetime.today()
-    config = jsnapshot_core.AppConfig()
+    config = AppConfig()
 
     for period in PERIOD_NAMES:
         if config.timetable[period] == 0:
@@ -76,7 +79,7 @@ def handle_cron(callback):
 
 
 def cron_auto_config():
-    config = jsnapshot_core.AppConfig()
+    config = AppConfig()
     is_enabled = False
     for period in PERIOD_NAMES:
         if config.timetable[period] > 0:
@@ -94,3 +97,4 @@ def cron_auto_config():
         job.minute.on(0)
 
     cron.write()
+    subprocess.run(["service", "cron", "restart"])

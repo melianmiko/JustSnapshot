@@ -1,40 +1,26 @@
 #!/usr/bin/env python3
-import sys
-import os
-
-if sys.version_info.major < 3:
-    raise Exception("Just Snapshot should be run with Python 3")
-
-# Add project root directory (enable symlink and trunk execution)
-PROJECT_ROOT_DIRECTORY = os.path.abspath(
-    os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0]))))
-
-python_path = []
-if os.path.exists(os.path.join(PROJECT_ROOT_DIRECTORY, 'jsnapshot_core')) and PROJECT_ROOT_DIRECTORY not in sys.path:
-    python_path.insert(0, PROJECT_ROOT_DIRECTORY)
-    sys.path.insert(0, PROJECT_ROOT_DIRECTORY)
-
-if python_path:
-    os.putenv('PYTHONPATH', "%s:%s" % (os.getenv('PYTHONPATH', ''), ':'.join(python_path)))  # for subprocesses
-
 import argparse
 import jsnapshot_core
+
+from jsnapshot_core.callback import AppCallback, ConsoleColor
+from jsnapshot_core.engine import BackupEngine
+from jsnapshot_core.initializer import initialize_app
 
 parser = argparse.ArgumentParser(prog="jsnapshot-list", description="List available snapshots")
 parser.add_argument("-t", "--tag", type=str, help="Filter with tag")
 args, a = parser.parse_known_args()
 
 # Init application
-callback = jsnapshot_core.AppCallback()
-result = jsnapshot_core.initialize_app(callback)
+callback = AppCallback()
+result = initialize_app(callback)
 if not result:
     callback.error("App init failed")
     raise SystemExit(1)
 
 # Get base elements
 volume = jsnapshot_core.bind_root()
-engine = jsnapshot_core.BackupEngine(callback, volume)
-colors = jsnapshot_core.ConsoleColor
+engine = BackupEngine(callback, volume)
+colors = ConsoleColor
 
 # Get snapshots
 if args.tag is not None:
@@ -42,7 +28,12 @@ if args.tag is not None:
 else:
     snapshots = engine.list_snapshots()
 
-print(colors.BOLD + " " + "Flag".ljust(8) + " " + "Name".ljust(24) + " " + "Extra info" + colors.END)
+print(colors.BOLD + " " +
+      "Flag".ljust(8) + " " +
+      "Name".ljust(24) + " " +
+      "Tags".ljust(6) + " " +
+      "Extra info" + colors.END)
+
 for snapshot in snapshots:
     flag = ""
     color = ""
@@ -59,4 +50,13 @@ for snapshot in snapshots:
     if "info" in snapshot.metadata:
         info = snapshot.metadata["info"]
 
-    print(color + " " + flag.ljust(8) + " " + snapshot.name.ljust(24) + " " + info + colors.END)
+    tags = ""
+    if "tags" in snapshot.metadata:
+        for a in snapshot.metadata["tags"]:
+            tags += str(a[0]).upper()
+
+    print(color + " " +
+          flag.ljust(8) + " " +
+          snapshot.name.ljust(24) + " " +
+          tags.ljust(6) + " " +
+          info + colors.END)

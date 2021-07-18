@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-import jsnapshot_core
+from .fstab import FstabFile
 
 
 def device_to_uuid(device):
@@ -28,7 +28,7 @@ def patch_fstab_of_backup(rootfs, restored_subvolumes, callback, config):
         return
 
     callback.notice("Patching fstab file: " + fstab_file)
-    fstab = jsnapshot_core.FstabFile(fstab_file)
+    fstab = FstabFile(fstab_file)
     target_device_names = [
         config.target_device,
         device_to_uuid(config.target_device)

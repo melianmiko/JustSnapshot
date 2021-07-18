@@ -26,7 +26,7 @@ class LogCallback:
             os.mkdir(log_root)
 
         self.path = log_root + "/" + filename
-        self.file = open(self.path)
+        self.file = open(self.path, "w")
 
         self.file.write("JustSnapshot " + VERSION + "\n")
 

@@ -1,36 +1,21 @@
 #!/usr/bin/env python3
-# noinspection PyUnresolvedReferences
-import sys
-import os
-
-if sys.version_info.major < 3:
-    raise Exception("Just Snapshot should be run with Python 3")
-
-# Add project root directory (enable symlink and trunk execution)
-PROJECT_ROOT_DIRECTORY = os.path.abspath(
-    os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0]))))
-
-python_path = []
-if os.path.exists(os.path.join(PROJECT_ROOT_DIRECTORY, 'jsnapshot_core')) and PROJECT_ROOT_DIRECTORY not in sys.path:
-    python_path.insert(0, PROJECT_ROOT_DIRECTORY)
-    sys.path.insert(0, PROJECT_ROOT_DIRECTORY)
-
-if python_path:
-    os.putenv('PYTHONPATH', "%s:%s" % (os.getenv('PYTHONPATH', ''), ':'.join(python_path)))  # for subprocesses
-
 import getpass
 import jsnapshot_core
+from jsnapshot_core.callback import ConsoleColor, AppCallback
+from jsnapshot_core.config import AppConfig
+from jsnapshot_core.cron_engine import cron_auto_config, PERIOD_NAMES
+from jsnapshot_core.initializer import initialize_app
 
-callback = jsnapshot_core.AppCallback()
+callback = AppCallback()
 if getpass.getuser() != "root":
     callback.error("Run this command as superuser!")
     raise SystemExit(1)
 
-app_config = jsnapshot_core.AppConfig()
+app_config = AppConfig()
 
 # List mounted BTRFS disks, ask user for target
 disks = jsnapshot_core.find_devices()
-colors = jsnapshot_core.ConsoleColor
+colors = ConsoleColor
 
 print("")
 print(colors.HEADER + colors.BOLD + "STEP 1. Select your system disk." + colors.END)
@@ -49,7 +34,7 @@ app_config.target_device = target
 app_config.save()
 
 # Init app
-jsnapshot_core.initialize_app(callback)
+initialize_app(callback)
 
 # Bind volume, get list of root subvolumes
 volume = jsnapshot_core.bind_root()
@@ -84,7 +69,7 @@ print(colors.HEADER + colors.BOLD + "STEP 3. Configure auto-snapshot timetable."
 print("")
 
 print("Enter count of auto-snapshots for every period. If you don't need auto-backup in some period, enter zero (0).")
-for period in jsnapshot_core.PERIOD_NAMES:
+for period in PERIOD_NAMES:
     value = -1
     while value < 0:
         try:
@@ -95,6 +80,6 @@ for period in jsnapshot_core.PERIOD_NAMES:
 
 print()
 app_config.save()
-jsnapshot_core.cron_auto_config()
+cron_auto_config()
 
 print("Configuration updated. Now you can use this application.")

@@ -7,6 +7,7 @@ setup(
     packages=['jsnapshot_core'],
     scripts=[
         "scripts/jsnapshot-create",
+        "scripts/jsnapshot-cron",
         "scripts/jsnapshot-delete",
         "scripts/jsnapshot-list",
         "scripts/jsnapshot-setup",

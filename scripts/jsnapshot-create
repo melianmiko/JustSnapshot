@@ -1,39 +1,24 @@
 #!/usr/bin/env python3
-import sys
-import os
-
-if sys.version_info.major < 3:
-    raise Exception("Just Snapshot should be run with Python 3")
-
-# Add project root directory (enable symlink and trunk execution)
-PROJECT_ROOT_DIRECTORY = os.path.abspath(
-    os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0]))))
-
-python_path = []
-if os.path.exists(os.path.join(PROJECT_ROOT_DIRECTORY, 'jsnapshot_core')) and PROJECT_ROOT_DIRECTORY not in sys.path:
-    python_path.insert(0, PROJECT_ROOT_DIRECTORY)
-    sys.path.insert(0, PROJECT_ROOT_DIRECTORY)
-
-if python_path:
-    os.putenv('PYTHONPATH', "%s:%s" % (os.getenv('PYTHONPATH', ''), ':'.join(python_path)))  # for subprocesses
-
 import argparse
 import traceback
-
 import jsnapshot_core
+
+from jsnapshot_core.callback import AppCallback
+from jsnapshot_core.engine import BackupEngine
+from jsnapshot_core.initializer import initialize_app
 
 parser = argparse.ArgumentParser(prog="jsnapshot-create", description="Create new system snapshot")
 parser.add_argument("--info", default="", required=False, type=str, help="User comment for snapshot")
 args, leftovers = parser.parse_known_args()
 
-callback = jsnapshot_core.AppCallback()
-result = jsnapshot_core.initialize_app(callback)
+callback = AppCallback()
+result = initialize_app(callback)
 if not result:
     callback.error("App init failed")
     raise SystemExit(1)
 
 volume = jsnapshot_core.bind_root()
-engine = jsnapshot_core.BackupEngine(callback, volume)
+engine = BackupEngine(callback, volume)
 try:
     engine.create_snapshot(tag_user=True, info=args.info)
 except Exception:
