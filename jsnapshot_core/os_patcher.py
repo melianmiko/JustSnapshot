@@ -43,14 +43,14 @@ def patch_fstab_of_backup(rootfs, restored_subvolumes, callback, config):
         subvolume_name = line.flags["subvol"]
         new_id = -1
         for a in restored_subvolumes:
-            if a.path == subvolume_name or a.path == "/" + subvolume_name:
+            if a.path == subvolume_name or "/" + a.path == subvolume_name:
                 new_id = a.id
 
         if new_id < 0:
             continue
 
-        line.id = new_id
-        callback.notice("Replaced ID in fstab row with subvolume " + subvolume_name)
+        line.flags["subvolid"] = new_id
+        callback.notice("Replaced ID in fstab row with subvolume " + subvolume_name + ": " + str(new_id))
 
     fstab.save()
     callback.notice("Fstab saved")

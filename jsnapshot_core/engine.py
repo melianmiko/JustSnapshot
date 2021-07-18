@@ -65,12 +65,14 @@ class BackupEngine:
             if not full and item["source"] not in parts:
                 continue
             source = self.volume.get_subvolume(item["backup"])
-            target = self.volume.get_subvolume(item["source"])
-            self.callback.notice("Restoring " + source.path + " => " + target.path)
+            target = item["source"]
+            self.callback.notice("Restoring " + source.path + " => " + target)
             new_volumes += source.snapshot_recursive(target)
-            if os.path.isfile(target.get_absolute_path() + "/etc/fstab"):
+
+            target_vol = self.volume.get_subvolume(target)
+            if os.path.isfile(target_vol.get_absolute_path() + "/etc/fstab"):
                 self.callback.warn("Detected restored rootfs (" + target + "). Fstab will be patched in them!")
-                rootfs = target.get_absolute_path()
+                rootfs = target_vol.get_absolute_path()
 
         # Patch fstab in restored system
         jsnapshot_core.os_patcher.patch_fstab_of_backup(rootfs, new_volumes, self.callback, config)
