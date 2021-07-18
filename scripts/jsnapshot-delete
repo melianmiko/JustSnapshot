@@ -21,9 +21,9 @@ import argparse
 import jsnapshot_core
 
 parser = argparse.ArgumentParser(prog="jsnapshot-delete", description="Delete one snapshot.")
-parser.add_argument("snapshot", type=str, help="Snapshot name")
+parser.add_argument("snapshots", nargs="+", type=str, help="Snapshot name")
 args = parser.parse_args()
-name = args.snapshot
+items = args.snapshots
 
 callback = jsnapshot_core.AppCallback()
 result = jsnapshot_core.initialize_app(callback)
@@ -35,19 +35,21 @@ volume = jsnapshot_core.bind_root()
 engine = jsnapshot_core.BackupEngine(callback, volume)
 snapshots = engine.list_snapshots()
 
-item = None
-for a in snapshots:
-    if a.name == name:
-        item = a
+for name in items:
+    target = None
+    for volume in snapshots:
+        if volume.name == name:
+            target = volume
 
-if item is None:
-    callback.warn("Snapshot with name " + name + " not found")
-    raise SystemExit(1)
+    if target is None:
+        callback.warn("Snapshot with name " + name + " not found")
+        continue
 
-if item.is_booted():
-    callback.error("Can't delete this snapshot: You're booted inside them. Maybe you recovered some snapshot and \n  "+
-                   "trying to delete auto-created backup. Reboot system and try again.")
-    raise SystemExit(1)
+    if target.is_booted():
+        callback.error("Can't delete this snapshot: You're booted inside them. " +
+                       "Maybe you recovered some snapshot and \n  " +
+                       "trying to delete auto-created backup. Reboot system and try again.")
+        continue
 
-callback.notice("Deleting snapshot " + item.path)
-item.delete()
+    callback.notice("Deleting snapshot " + target.path)
+    target.delete()
