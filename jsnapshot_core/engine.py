@@ -59,6 +59,7 @@ class BackupEngine:
         paths = target_snapshot.metadata["subvolumes"]
         new_volumes = []
 
+        rootfs = ""
         self.callback.notice("Recovering target snapshot...")
         for item in paths:
             if not full and item["source"] not in parts:
@@ -67,9 +68,11 @@ class BackupEngine:
             target = item["source"]
             self.callback.notice("Restoring " + source.path + " => " + target)
             new_volumes += source.snapshot_recursive(target)
+            if os.path.isfile(target + "/etc/fstab"):
+                self.callback.warn("Detected restored rootfs (" + target + "). Fstab will be patched in them!")
 
         # Patch fstab in restored system
-        jsnapshot_core.os_patcher.patch_fstab_of_backup(new_volumes, self.callback, config)
+        jsnapshot_core.os_patcher.patch_fstab_of_backup(rootfs, new_volumes, self.callback, config)
         self.callback.notice("Restore completed. Reboot is required to apply changes.")
 
     def _create_snapshot_item(self):
