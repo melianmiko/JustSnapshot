@@ -5,7 +5,7 @@ from .initializer import initialize_app
 from .callback import AppCallback, ConsoleColor
 from .config import AppConfig, APP_DISK_MOUNT_POINT
 from .engine import BackupEngine
-from .snapshot import Snapshot
+from .snapshot import Snapshot, SNAPSHOT_NAME_FORMAT
 from . import os_patcher
 import subprocess
 

@@ -2,6 +2,10 @@ import json
 import os.path
 import shutil
 import subprocess
+from datetime import datetime
+
+
+SNAPSHOT_NAME_FORMAT = "%Y-%m-%d_%H-%M-%S"
 
 
 class Snapshot:
@@ -12,6 +16,45 @@ class Snapshot:
         self.metadata = {}
 
         self.load_metadata()
+
+    def get_date(self):
+        return datetime.strptime(self.name, SNAPSHOT_NAME_FORMAT)
+
+    def has_tag(self, tag):
+        """
+        Check that snapshot has 'tag' in metadata.tags
+        :param tag: required tag
+        :return: True, if has
+        """
+        if "tags" not in self.metadata:
+            return False
+
+        return tag in self.metadata["tags"]
+
+    def set_tag(self, tag):
+        """
+        Add tag to metadata.tags
+        :param tag: required tag
+        :return: void
+        """
+        if "tags" not in self.metadata:
+            self.metadata["tags"] = []
+
+        if tag not in self.metadata["tags"]:
+            self.metadata["tags"].append(tag)
+            self.metadata["tags"].sort()
+
+    def untag(self, tag):
+        """
+        Remove tag from snapshot
+        :param tag: target tag
+        :return: void
+        """
+        if "tags" not in self.metadata:
+            return
+
+        if tag in self.metadata["tags"]:
+            self.metadata["tags"].remove(tag)
 
     def is_booted(self):
         mounts = str(subprocess.check_output(["mount"]))

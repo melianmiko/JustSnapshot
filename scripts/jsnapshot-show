@@ -55,9 +55,15 @@ for a in item.metadata:
     if isinstance(item.metadata[a], str):
         print(" " + a.ljust(KEY_WIDTH) + " = " + item.metadata[a])
 
+
 print()
+print(colors.BOLD + "Snapshot tags:" + colors.END)
+if "tags" in item.metadata:
+    for a in item.metadata["tags"]:
+        print("  " + a)
 
 # Read recover_paths file
+print()
 parts = item.metadata["subvolumes"]
 for info in parts:
     print(colors.BOLD + "Subvolume " + info["backup"] + ":" + colors.END)

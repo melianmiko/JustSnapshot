@@ -35,7 +35,7 @@ if not result:
 volume = jsnapshot_core.bind_root()
 engine = jsnapshot_core.BackupEngine(callback, volume)
 try:
-    engine.create_snapshot(info=args.info)
+    engine.create_snapshot(tag_user=True, info=args.info)
 except Exception:
     traceback.print_exc()
     callback.error("Operation failed.")

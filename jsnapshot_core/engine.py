@@ -24,6 +24,8 @@ class BackupEngine:
         for name in os.listdir(self.storage_path):
             out.append(jsnapshot_core.Snapshot(name, self.volume))
 
+        out.sort(key=lambda x: x.get_date())
+
         return out
 
     def restore_snapshot(self, target_snapshot, full=False, parts=None):
@@ -86,7 +88,7 @@ class BackupEngine:
         if not os.path.isdir(self.storage_path):
             os.mkdir(self.storage_path)
 
-        name = datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+        name = datetime.today().strftime(jsnapshot_core.SNAPSHOT_NAME_FORMAT)
         path = self.storage_path + "/" + name
 
         self.callback.notice("Backup to: " + path)
@@ -95,7 +97,7 @@ class BackupEngine:
         snapshot = jsnapshot_core.Snapshot(name, self.volume)
         return snapshot
 
-    def create_snapshot(self, info=None):
+    def create_snapshot(self, tag_user, info=None):
         """
         Create system snapshot
         :return:
@@ -116,6 +118,8 @@ class BackupEngine:
             })
 
         snapshot.metadata["subvolumes"] = recover_paths
+        if tag_user:
+            snapshot.set_tag("user")
 
         # Create snapshot info file (via snapshot class)
         if info != "" and info is not None:
