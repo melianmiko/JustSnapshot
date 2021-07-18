@@ -21,18 +21,26 @@ import argparse
 import jsnapshot_core
 
 parser = argparse.ArgumentParser(prog="jsnapshot-list", description="List available snapshots")
-parser.parse_known_args()
+parser.add_argument("-t", "--tag", type=str, help="Filter with tag")
+args, a = parser.parse_known_args()
 
+# Init application
 callback = jsnapshot_core.AppCallback()
 result = jsnapshot_core.initialize_app(callback)
 if not result:
     callback.error("App init failed")
     raise SystemExit(1)
 
+# Get base elements
 volume = jsnapshot_core.bind_root()
 engine = jsnapshot_core.BackupEngine(callback, volume)
-snapshots = engine.list_snapshots()
 colors = jsnapshot_core.ConsoleColor
+
+# Get snapshots
+if args.tag is not None:
+    snapshots = engine.list_snapshots_with_tag(args.tag)
+else:
+    snapshots = engine.list_snapshots()
 
 print(colors.BOLD + " " + "Flag".ljust(8) + " " + "Name".ljust(24) + " " + "Extra info" + colors.END)
 for snapshot in snapshots:

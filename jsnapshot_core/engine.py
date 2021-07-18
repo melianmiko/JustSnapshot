@@ -28,6 +28,21 @@ class BackupEngine:
 
         return out
 
+    def list_snapshots_with_tag(self, tag):
+        """
+        List all snapshots with specified tag
+        :param tag: target tag
+        :return: void
+        """
+        data = self.list_snapshots()
+        out = []
+
+        for a in data:
+            if a.has_tag(tag):
+                out.append(a)
+
+        return out
+
     def restore_snapshot(self, target_snapshot, full=False, parts=None):
         """
         (DANGER) Restore snapshot
