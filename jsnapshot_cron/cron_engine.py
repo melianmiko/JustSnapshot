@@ -93,7 +93,7 @@ def cron_auto_config():
     cron.remove_all()
 
     if is_enabled:
-        job = cron.new(command="jsnapshot-cron")
+        job = cron.new(command="/usr/bin/env python3 -m jsnapshot_cron")
         job.minute.on(0)
 
     cron.write()

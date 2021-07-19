@@ -59,6 +59,9 @@ class Snapshot:
 
     def is_booted(self):
         mounts = str(subprocess.check_output(["mount"]))
+        if "subvolumes" not in self.metadata:
+            return False
+
         subvolumes = self.metadata["subvolumes"]
 
         for a in subvolumes:

@@ -3,7 +3,7 @@ import getpass
 import jsnapshot_core
 from jsnapshot_core.callback import ConsoleColor, AppCallback
 from jsnapshot_core.config import AppConfig
-from jsnapshot_core.cron_engine import cron_auto_config, PERIOD_NAMES
+from jsnapshot_cron.cron_engine import cron_auto_config, PERIOD_NAMES
 from jsnapshot_core.initializer import initialize_app
 
 callback = AppCallback()

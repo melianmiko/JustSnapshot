@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from jsnapshot_core.callback import LogCallback
 from jsnapshot_core.initializer import initialize_app
-from jsnapshot_core.cron_engine import handle_cron
+from .cron_engine import handle_cron
 
 # Init app
 callback = LogCallback()

@@ -4,11 +4,11 @@ from jsnapshot_core.app_info import VERSION
 setup(
     name='JustSnapshot',
     version=VERSION,
-    packages=['jsnapshot_core'],
+    packages=['jsnapshot_core', "jsnapshot_cron"],
     scripts=[
         "scripts/jsnapshot-create",
-        "scripts/jsnapshot-cron",
         "scripts/jsnapshot-delete",
+        "scripts/jsnapshot-edit",
         "scripts/jsnapshot-list",
         "scripts/jsnapshot-setup",
         "scripts/jsnapshot-show",
