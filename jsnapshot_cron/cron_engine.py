@@ -1,15 +1,11 @@
 import os.path
-import subprocess
 from datetime import datetime, timedelta
-from pathlib import Path
-
-from crontab import CronTab
 
 import jsnapshot_core
 from jsnapshot_core.config import AppConfig
 from jsnapshot_core.engine import BackupEngine
 
-CRON_FILE = "/etc/cron.d/just_snapshot"
+CRON_FILE = "/etc/cron.hourly/00-just-snapshot"
 PERIOD_NAMES = ["hourly", "daily", "weekly", "monthly"]
 PERIOD_LENGTH = {
     "hourly": timedelta(hours=1),
@@ -35,6 +31,14 @@ def process_tag_cleanup(engine, config, callback):
             callback.notice("Removing tag " + period + " from " + tagged[0].name)
             tagged[0].untag(period)
             tagged.remove(tagged[0])
+
+
+def remove_without_tags(engine, callback):
+    snaps = engine.list_snapshots()
+    for a in snaps:
+        if len(a.metadata["tags"]) == 0:
+            callback.notice("DELETE non-required snapshot: " + a.name)
+            a.delete()
 
 
 def handle_cron(callback):
@@ -75,7 +79,8 @@ def handle_cron(callback):
         snapshot = engine.create_snapshot(False, "Auto backup")
         snapshot.set_tag(period)
 
-    # process_tag_cleanup(engine, config, callback)
+    process_tag_cleanup(engine, config, callback)
+    remove_without_tags(engine, callback)
 
 
 def cron_auto_config():
@@ -86,15 +91,9 @@ def cron_auto_config():
             is_enabled = True
 
     # Setup crontab
-    if not os.path.isfile(CRON_FILE):
-        Path(CRON_FILE).touch()
-
-    cron = CronTab(user="root", tabfile=CRON_FILE)
-    cron.remove_all()
-
-    if is_enabled:
-        job = cron.new(command="/usr/bin/env python3 -m jsnapshot_cron")
-        job.minute.on(0)
-
-    cron.write()
-    subprocess.run(["service", "cron", "restart"])
+    if not is_enabled and os.path.isfile(CRON_FILE):
+        os.unlink(CRON_FILE)
+    elif is_enabled:
+        with open(CRON_FILE, "w") as f:
+            f.write("#!/usr/bin/bash\npython3 -m jsnapshot_cron\n")
+        os.chmod(CRON_FILE, 0o755)
