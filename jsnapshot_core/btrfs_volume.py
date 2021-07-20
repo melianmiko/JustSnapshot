@@ -46,11 +46,21 @@ class BtrfsVolume:
         if path.startswith(self.mount_point):
             path = path[len(self.mount_point)+1:]
 
-        s = self.list_subvolumes()
         out = []
-        for a in s:
-            if a.path.startswith(path + "/") and a.path != path:
-                out.append(a)
+        command = ["btrfs", "subvolume", "list", self.mount_point]
+        result = subprocess.run(command, stdout=subprocess.PIPE)
+        assert result.returncode == 0
+
+        data_lines = str(result.stdout, "utf8").split("\n")
+        for line in data_lines:
+            if not line == "":
+                line = line.split(" ")
+                volume_id = int(line[1])
+                volume_path = line[8]
+                assert volume_id > 0
+
+                if volume_path.startswith(path + "/") and volume_path != path:
+                    out.append(BtrfsSubvolume(volume_id, self))
 
         return out
 
@@ -78,11 +88,20 @@ class BtrfsVolume:
         Get list of root subvolumes
         :return: list
         """
-        subvolumes = self.list_subvolumes()
         out = []
+        command = ["btrfs", "subvolume", "list", self.mount_point]
+        result = subprocess.run(command, stdout=subprocess.PIPE)
+        assert result.returncode == 0
 
-        for a in subvolumes:
-            if "/" not in a.path:
-                out.append(a)
+        data_lines = str(result.stdout, "utf8").split("\n")
+        for line in data_lines:
+            if not line == "":
+                line = line.split(" ")
+                volume_id = int(line[1])
+                volume_path = line[8]
+                assert volume_id > 0
+
+                if "/" not in volume_path:
+                    out.append(BtrfsSubvolume(volume_id, self))
 
         return out

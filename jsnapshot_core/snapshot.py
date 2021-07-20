@@ -56,6 +56,7 @@ class Snapshot:
 
         if tag in self.metadata["tags"]:
             self.metadata["tags"].remove(tag)
+            self.save_metadata()
 
     def is_booted(self):
         mounts = str(subprocess.check_output(["mount"]))
