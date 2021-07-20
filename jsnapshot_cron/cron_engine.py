@@ -36,7 +36,7 @@ def process_tag_cleanup(engine, config, callback):
 def remove_without_tags(engine, callback):
     snaps = engine.list_snapshots()
     for a in snaps:
-        if len(a.metadata["tags"]) == 0:
+        if len(a.metadata["tags"]) == 0 and not a.is_booted():
             callback.notice("DELETE non-required snapshot: " + a.name)
             a.delete()
 
