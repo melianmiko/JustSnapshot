@@ -1,5 +1,6 @@
-import os.path
+import time
 from datetime import datetime
+from pathlib import Path
 
 from .app_info import VERSION
 
@@ -18,17 +19,26 @@ class ConsoleColor:
 
 
 class LogCallback:
-    def __init__(self):
-        filename = "log_" + datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+    def __init__(self, tag):
+        date_string = datetime.today().strftime("%Y-%m-%d_%H-%M-%S\n")
+        header = "\n-------------------------\n"
+        header += "JustSnapshot " + tag + " " + VERSION + " at " + date_string
 
         log_root = "/var/log/just_snapshot"
-        if not os.path.isdir(log_root):
-            os.mkdir(log_root)
+        if not Path(log_root).is_dir():
+            Path(log_root).mkdir()
 
-        self.path = log_root + "/" + filename
-        self.file = open(self.path, "w")
+        self.path = log_root + "/" + tag + ".log"
+        if Path(self.path).exists():
+            # If file is older than 31 day, rename to backup
+            if Path(self.path).stat().st_ctime < time.time() - 31 * 24 * 3600:
+                Path(self.path).rename(self.path + "_" + date_string)
+        else:
+            # Touch file
+            Path(self.path).touch()
 
-        self.file.write("JustSnapshot " + VERSION + "\n")
+        self.file = open(self.path, "a")
+        self.file.write(header)
 
     def notice(self, data):
         self.file.write("NOTICE: " + str(data) + "\n")

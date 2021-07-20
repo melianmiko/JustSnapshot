@@ -4,7 +4,7 @@ from jsnapshot_core.initializer import initialize_app
 from .cron_engine import handle_cron
 
 # Init app
-callback = LogCallback()
+callback = LogCallback("cron")
 result = initialize_app(callback)
 if not result:
     callback.error("App init failed")
