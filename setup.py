@@ -15,9 +15,6 @@ setup(
         "scripts/jsnapshot-restore"
     ],
     url='https://melianmiko.ru/',
-    install_requires=[
-        "python-crontab"
-    ],
     license='BSD',
     author='MelianMiko',
     author_email='melianmiko@gmail.com',
