@@ -1,0 +1,17 @@
+Source: justsnapshot
+Section: utils
+Priority: optional
+Maintainer: MelianMiko <miko@melianmiko-laptop>
+Build-Depends: debhelper-compat (= 13), dh-python, python3-setuptools, python3-all
+Standards-Version: 4.5.1
+Homepage: https://melianmiko.ru/
+Vcs-Git: https://github.com/melianmiko/JustSnapshot.git
+Rules-Requires-Root: no
+
+Package: justsnapshot
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Description: Simple BTRFS snapshot managment tool.
+ .
+ This package provides core system and CLI tools.
+

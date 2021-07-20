@@ -2,6 +2,9 @@ venv
 build
 dist
 .idea
+.pybuild
 JustSnapshot.egg-info
 **/__pycache__
+debian/.debhelper
+debian/justsnapshot
 
