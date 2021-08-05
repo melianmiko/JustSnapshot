@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import argparse
+import os
+import traceback
+
 import jsnapshot_core
 
 from jsnapshot_core.callback import AppCallback
