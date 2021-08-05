@@ -73,6 +73,8 @@ class BackupEngine:
         auto_snapshot.metadata["info"] = "Auto-snapshot before restoring: " + target_snapshot.name
         auto_snapshot.save_metadata()
 
+        auto_snapshot.set_tag("fallback")
+
         # Recover target snapshot parts
         paths = target_snapshot.metadata["subvolumes"]
         new_volumes = []
