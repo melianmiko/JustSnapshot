@@ -38,4 +38,7 @@ Run 'jsnapshot-setup' to configure.
 
 #-- CHANGELOG -----------------------------------------------------------------#
 %changelog
+* Mon Nov 08 2021 MelianMiko <melianmiko@gmail.com> 0.1-1
+- new package built with tito
+
 
