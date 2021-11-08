@@ -10,7 +10,7 @@ Rules-Requires-Root: no
 
 Package: justsnapshot
 Architecture: all
-Depends: ${python3:Depends}, ${misc:Depends}
+Depends: ${misc:Depends}, python3.9
 Description: Simple BTRFS snapshot managment tool.
  .
  This package provides core system and CLI tools.
